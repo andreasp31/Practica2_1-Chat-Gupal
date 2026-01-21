@@ -17,12 +17,12 @@ El proyecto está organizado en las siguientes clases principales:
 * **HelloController**: Gestiona los eventos de la interfaz FXML, como el envío de mensajes y la conexión inicial del servidor.
 * **Launcher**: Punto de entrada que lanza la aplicación JavaFX para su inicialización.
 
-## 💻 Utilización
+## Utilización
 * Java con IntelliJ.
 * JavaFX SDK configurado.
 * SceneBuilder para el diseño de la vista.
 
-## 📖 Instrucciones de Uso
+## Instrucciones de Uso
 1.  **Ejecución:** Inicia el proyecto a través de la clase Launcher.
 2.  **Login:** Al arrancar, el servidor se inicia automáticamente. Y pide introducir un nombre de usuario en la pantalla de bienvenida y pulsa "Entrar".
 3.  **Chat:** Escribe tu mensaje en el campo de texto y haz clic en "Enviar". El mensaje aparecerá en las pantallas de todos los usuarios conectados.
