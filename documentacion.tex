@@ -1,0 +1,198 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{titling}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{minted}
+\usepackage{enumitem}
+\usepackage{fancyvrb}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{bibliografia.bib}
+\geometry{margin=2.5cm}
+
+
+\title{Práctica 2-1: Chat Grupal}
+\author{Andrea Sofía Pais Dos Santos}
+\date{\today}
+
+\begin{document}
+\setlength{\droptitle}{0.4\textheight} 
+\maketitle
+\thispagestyle{empty}
+\newpage 
+
+
+\vspace{5cm}
+\section{Índice}
+
+\begin{enumerate}[start=2]
+    \item Introducción ................................................................... página 3
+    \item Tecnologías utilizadas ..................................................... página 3
+    \item Diseño de la interfaz ....................................................... página 3
+    \item Conexión con la interfaz ................................................. página 4
+    \item Clases e Interfaces ........................................................... página 5
+    \begin{itemize}
+        \item HelloController
+        \item Clases en Java
+        \begin{itemize}
+            \item EchoServerMultihilo
+            \item ManejadorUsuarioMultihilo
+            \item UsuarioInterfaz
+        \end{itemize}
+        \item HelloView (FXML) y Launcher
+    \end{itemize}
+    \item Casos de Uso  ..................................................................... página 7
+    \item Historias de Usuarios  ........................................................ página 7
+\end{enumerate}
+\newpage
+
+\section{Introducción}
+Para la elaboración de un Chat Grupal entre varios usuarios y que entre ellos se vean los mensajes vamos a tener que a parte de implementar "puentes" (sockets) entre los usuarios y el servidor, vamos a tener que transpasar la información de los mensajes entre ellos. 
+
+Primero hay que elaborar una interfaz que cada vez que ejecutemos, el servidor funcione por terminal y permita que se vaya añadiendo usuarios que mediante un nombre lo guarde y sea su usuario para que los demás usuarios vean.
+
+\section{Tecnologías utilizadas}
+Para esta práctica las tecnologías utilizadas son JavaFx con IntelliJ usando SceneBuilder para diseñar la interfaz del usuario.
+
+\section{Diseño de la interfaz}
+Para una buena interfaz se va a realizar una vista para el usario sencilla, con primero un modal que aparezca al principo que te pide el nombre para usar en el chat, luego de darle al botón nos oculta el modal y vemos nuestro chat. 
+\begin{itemize}
+    \item Zona donde se ven todos los mensajes
+    \item Espacio para enviar un mensaje nuevo
+    \item Botones para enviar un mensaje y salir del chat desconectando el socket
+\end{itemize}
+EL servidor se ve por detrás, en la terminal y vemos todo el flujo de información entre usuarios.
+
+Aquí podemos ver la primera vista donde hay que seleccionar un nombre con el que nos van a ver en el Chat.
+
+\vspace{0.5cm}
+\begin{center}
+    \includegraphics[height=8cm]{images/chat1.png}
+\end{center}
+
+Luego ya accedemos al chat, en el que nos da la bienvenida y nos permite enviar mensajes.
+
+\vspace{0.5cm}
+\begin{center}
+    \includegraphics[height=8cm]{images/chat2.png}
+\end{center}
+
+Vemos que otra persona se ha conectado y recibimos los mensajes que ha enviado.
+
+\vspace{0.5cm}
+\begin{center}
+    \includegraphics[height=8cm]{images/chat3.png}
+\end{center}
+
+Luego vemos que tenemos un botón de salir que nos desconecta del servidor cerrando el socket.
+
+\vspace{3cm}
+\section{Conexión con la interfaz}
+
+Para la conexión de nuestra práctica ya funcional por terminal a pasarla a una interfaz, en resumen es básicamente pasar los mensajes que se imprimen por terminal de cada usuario a uno elementos visuales. 
+
+Para la visualización del chat usaremos un TextArea y para los mensajes un TextField usando el HelloController que pasa los elementos gráficos que se van a rellenar y en las clases añadimos el contenido.
+
+
+\vspace{1cm} 
+\section{Clases e Interfaces} 
+Explicación breve de cada clase e interfaz y las herramientas necesarias para llevar a cabo la aplicación de chat grupal. El sistema utiliza sockets para la comunicación y un pool de hilos para gestionar varios al mismo tiempo.
+
+\subsubsection{HelloController} 
+\begin{itemize} 
+    \item Variables FXML: 
+    \begin{enumerate} 
+        \item TextField mensajeU1 -> Campo de texto para escribir el mensaje que quiera enviar el usuario. 
+        \item TextArea chat1 -> Área de texto donde se visualiza el historial de la conversación. 
+        \item Button botonEnviar1 -> Botón para mandar el mensaje al servidor. 
+        \item Pane pantallaNombre -> Panel superpuesto para solicitar el nombre de usuario antes de entrar al chat. 
+        \item TextField nombreUsuario -> Campo para introducir el nombre del usuario. 
+    \end{enumerate} 
+    \item Función initialize(): Se encarga de arrancar el servidor automáticamente al iniciar la aplicación y configurar la acción del botón entrar para capturar el nombre del usuario y habilitar la interfaz de chat. 
+    \item Función configurarUsuario(): Instancia la clase UsuarioInterfaz, inicia su hilo que corresponde y define las acciones de los botones enviar y desconectar. 
+    \item Función iniciarServidor(): Instancia y arranca el EchoServerMultihilo en un hilo separado para no bloquear la interfaz de usuario. 
+\end{itemize}
+
+\vspace{3cm} 
+\subsection{Clases en Java} 
+El sistema se divide en la lógica del servidor (gestiona las conexiones) y la lógica del cliente (interacción con el usuario).
+
+\subsubsection{EchoServerMultihilo} 
+\begin{itemize} 
+    \item Atributos: 
+    \begin{enumerate}
+        \item PUERTO -> Constante que define el puerto de escucha: 8080. 
+        \item MAX CLIENTES -> Límite de hilos en el ExecutorService. 
+        \item Usuarios -> Lista estática de PrintWriter para realizar el broadcast de mensajes a todos los conectados. 
+    \end{enumerate} 
+    \item Función iniciarServidor(): Crea un ServerSocket y entra en un bucle infinito esperando conexiones. Cada vez que un cliente se conecta accept(), entrega el socket a un ManejadorUsuarioMultihilo ejecutado por el pool de hilos.
+\end{itemize}
+
+\subsubsection{ManejadorUsuarioMultihilo} 
+\begin{itemize} 
+    \item Esta clase implementa Runnable y muestra  la lógica del servidor para cada cliente individual. 
+    \item run(): 
+    \begin{enumerate} 
+        \item Guarda el flujo de salida del cliente en la lista global de usuarios. 
+        \item Lee la primera línea enviada por el cliente como su nombre de usuario. 
+        \item Entra en un bucle donde recibe mensajes y los reenvía (broadcast) a todos los clientes conectados. 
+        \item Utiliza Platform.runLater() para imprimir logs en la consola. 
+        \item En el bloque finally, elimina al usuario de la lista y cierra el socket al desconectarse. 
+    \end{enumerate} 
+\end{itemize}
+
+\subsubsection{UsuarioInterfaz} 
+\begin{itemize} 
+    \item Esta clase implementa Runnable y gestiona la conexión del lado del cliente. 
+    \item Atributos: Host, puerto, el nombre del usuario y referencias a los elementos como el TextArea y Button. 
+    \item run(): 
+    \begin{enumerate} 
+        \item Intenta establecer conexión con el servidor mediante un Socket. 
+        \item Envía el nombre de usuario como primer mensaje para identificarse. 
+        \item Mantiene un bucle activo escuchando los mensajes que llegan del servidor y los añade al areaChat usando Platform.runLater(). 
+    \end{enumerate} 
+    \item Función enviarMensaje(): Envía un string a través del PrintWriter hacia el servidor. 
+    \item Función desconectar(): Cambia el estado de conexión y cierra el socket. 
+\end{itemize}
+
+\subsection{Hello View (FXML) y Launcher} 
+\begin{itemize} 
+    \item Vista: Define un Pane inicial para el login y un contenedor principal para el chat con TextArea y botones de envío. 
+    \item Launcher: Clase auxiliar que llama a Application launch para iniciar. 
+\end{itemize}
+
+\section{Casos de Usos}
+
+\vspace{0.5cm}
+\begin{tabular}{|l|p{10cm}|}
+    \hline
+    Caso de Uso & Descripción \\ \hline
+    Identificación de Usuario & El usuario ingresa su nombre en la pantalla inicial para identificarse ante el servidor antes de acceder al chat grupal. \\ \hline
+    Envío de Mensajes & Un usuario escribe un texto y, al pulsar enviar, el mensaje se transmite al servidor para que este lo distribuya a todos los clientes conectados. \\ \hline
+    Broadcast de Mensajes & El servidor recibe un mensaje de un cliente y lo reenvía automáticamente a todos. \\ \hline
+    Desconexión Voluntaria &  El usuario pulsa el botón desconectar, lo que cierra su socket de comunicación y notifica al servidor para que lo elimine de la lista de difusión.\\ \hline
+\end{tabular}
+
+
+\section{Historial de Usuarios}
+
+\vspace{0.5cm}
+\begin{tabular}{|l|p{2cm}|p{5cm}|p{5cm}|}
+    \hline
+    Identificación & Nombre & Tarea & Objetivo\\ \hline
+    HU1 & Usuario & El usuario accede al servidor y se le da posibilidad de escribir el nombre o apodo que quiera. & Poder escoger mi nombre \\ \hline
+    HU3 & Usuario & El usuario al acceder al chat y si hay más personas conectadas a ese servidor puede interactuar con la otra mediante mensajes.  & Ver los mensajes de los otros usuarios \\ \hline
+    HU4 & Gestión & El programa tiene que tener un flujo de usuarios y saber controlarlo, tanto limitarlo como tener usuarios infinitos si hiciera falta. & Que pueda administrar más de 1 persona y poner límites en el número de usuario\\ \hline
+    HU5 & Usuario & Justo tras conectarse el usuarios y que el socket se abra, el usuario recibe un mensaje de bienvenida que también recibe el servidor. & Recibir un mensaje de bienvenida \\ \hline
+   
+\end{tabular}
+
+\end{document}
